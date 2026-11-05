@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ridhima's Birthday Scrapbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
+</head>
+<body>
+  <main class="album" aria-label="Ridhima's birthday scrapbook album">
+    <header class="album-header"><span>Ridhima Porwal · 19</span><span>an album made with love</span></header>
+    <section class="deck" id="deck">
+      {% for slide in slides %}
+        <article class="slide{% if loop.first %} is-active{% endif %}" data-slide-index="{{ loop.index0 }}">
+          {% if slide.kind == 'cover' %}
+            <div class="cover-card polaroid"><span class="washi washi-pink"></span><p class="eyebrow">a tiny celebration for</p><h1>Happy <em>19th</em><br>Birthday, Ridhima! <span>🎉</span></h1><p class="cover-note">nineteen looks beautiful on you</p><p class="swipe-note">swipe left to open <b>➜</b></p><p class="date">05 · 11 · 2007</p></div>
+          {% elif slide.kind == 'collage' %}
+            <div class="collage-spread"><div class="spread-label">photo spread {{ '%02d'|format(slide.number) }}</div><p class="spread-title">little moments ✦</p><div class="photo-stack">
+              {% for photo in slide.photos %}<figure class="scrap-photo layout-{{ photo.layout }}"><span class="photo-tape"></span><img src="{{ photo.src }}" alt="A memory in Ridhima's scrapbook" loading="lazy"><figcaption>{{ loop.index }} / {{ photo_count }}</figcaption></figure>{% endfor %}
+            </div><p class="spread-caption">the days we never want to forget</p></div>
+          {% elif slide.kind == 'note' %}
+            <div class="memory-note note-{{ slide.tone }} polaroid"><span class="washi"></span><p class="note-kicker">a note for Ridhima</p><h2>{{ slide['from'] }}</h2><p class="message">{{ slide.message }}</p><p class="signature">with love & laughter ✦</p></div>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </section>
+    <button class="arrow previous" type="button" aria-label="Previous slide">←</button><button class="arrow next" type="button" aria-label="Next slide">→</button>
+    <nav class="dots" aria-label="Slide navigation">{% for slide in slides %}<button class="dot{% if loop.first %} active{% endif %}" type="button" data-target="{{ loop.index0 }}" aria-label="Go to slide {{ loop.index }}"></button>{% endfor %}</nav>
+    <p class="counter"><span id="current">01</span> / {{ '%02d'|format(slides|length) }}</p><p class="hint">use ← → or swipe to explore</p>
+  </main>
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const dots = [...document.querySelectorAll('.dot')];
+      const counter = document.querySelector('#current');
+      let current = 0, startX = 0, startY = 0;
+      function show(index) { current = (index + slides.length) % slides.length; slides.forEach((s, i) => s.classList.toggle('is-active', i === current)); dots.forEach((d, i) => d.classList.toggle('active', i === current)); counter.textContent = String(current + 1).padStart(2, '0'); }
+      document.querySelector('.previous').addEventListener('click', () => show(current - 1));
+      document.querySelector('.next').addEventListener('click', () => show(current + 1));
+      dots.forEach(dot => dot.addEventListener('click', () => show(Number(dot.dataset.target))));
+      document.addEventListener('keydown', event => { if (event.key === 'ArrowLeft') show(current - 1); if (event.key === 'ArrowRight') show(current + 1); });
+      const deck = document.querySelector('#deck');
+      deck.addEventListener('touchstart', event => { startX = event.changedTouches[0].screenX; startY = event.changedTouches[0].screenY; }, { passive: true });
+      deck.addEventListener('touchend', event => { const dx = event.changedTouches[0].screenX - startX; const dy = event.changedTouches[0].screenY - startY; if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) show(current + (dx < 0 ? 1 : -1)); }, { passive: true });
+    })();
+  </script>
+</body>
+</html>
